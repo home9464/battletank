@@ -12,6 +12,9 @@ class Turret:
         servos_indices = [0, 2]  # only use one servo
         self.servokit = ServoKit(channels=16)
 
+        self.horizontal_angle = 90
+        self.vertical_angle = 90
+
         #self.min_x = 0
         #self.max_x = 180
 
@@ -26,6 +29,21 @@ class Turret:
             self.servokit.servo[i].actuation_range = self.max_angle
         #self.gun = NerfGun()
         self.center()
+
+    def move(self, horizontal_vertical:[])-> None:
+        """
+        Args:
+        x : [-1, 1]
+        y : [-1, 1]
+        """
+        horizontal, vertical = horizontal_vertical
+        if 45 <= self.horizontal_angle + horizontal < 135:
+            self.horizontal_angle += horizontal
+            self.servokit.servo[2].angle = self.horizontal_angle
+        if 80 <= self.vertical_angle + vertical < 105:
+            self.vertical_angle += vertical
+            #self.servokit.servo[0].angle = self.vertical_angle
+        print(horizontal, vertical)
 
     def angle(self, index:int, offset:int)-> None:
         """
@@ -78,10 +96,8 @@ class Turret:
             self.gun.off()
 
     def center(self):
-        self.x = 90
-        self.y = 90
-        self.angle(0, self.x)
-        self.angle(2, self.y)
+        self.angle(0, self.horizontal_angle)
+        self.angle(2, self.vertical_angle)
 
     def up(self):
         self.y += 1
@@ -122,11 +138,6 @@ class Turret:
         if 0 <= self.y <= 180:
             self.angle(2, self.y)
 
-    def x_angle(self):
-        return self.x 
-
-    def y_angle(self):
-        return self.y
 
 def test2():
     rcws = Turret()

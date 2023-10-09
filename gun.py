@@ -12,7 +12,8 @@ class MainGun:
         GPIO.output(CHANNEL_ID, GPIO.LOW)
 
     def fire(self, yes_or_no:bool):
-        print('fire')
+        """fire the 
+        """
         if yes_or_no:
             GPIO.output(CHANNEL_ID, GPIO.HIGH)
         else:

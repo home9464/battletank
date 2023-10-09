@@ -28,6 +28,8 @@ SERVER_IP = '0.0.0.0'
 SERVER_PORT = 8888
 
 async def read_frame(data:list, reader, payload_size):
+    """read a frame and convert it to an image 
+    """
     content = data[0]
     while len(content) < payload_size:
         packet = await reader.read(4*1024) # 4K
