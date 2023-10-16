@@ -4,7 +4,8 @@ import functools
 import asyncio
 
 from drive import Drive
-#from camera import Camera
+from camera import start_camera_streaming
+
 from gun import MainGun
 from turret import Turret
 from gamepad import GamepadController
@@ -19,11 +20,13 @@ async def main():
     print("press Ctl-C to exit")
     controller = GamepadController(debug=False)
     #controller.register('drive', drive)
+
     controller.register('drive', driver.drive)
     controller.register('servo0', functools.partial(commander.angle, 0))  # channel 0
     controller.register('servo1', functools.partial(commander.angle, 2))  # channel 2
     controller.register('fire', gunner.fire)  # channel 2
     try:
+        camera_straming = asyncio.create_task(start_camera_streaming())
         controller_producer = asyncio.create_task(controller.producer())
         #controller_random_event = asyncio.create_task(controller.random_event())
         controller_consumer = asyncio.create_task(controller.consumer())
