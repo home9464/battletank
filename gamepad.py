@@ -134,6 +134,9 @@ class GamepadController:
             self.events_callback[event].remove(callback)
 
     async def random_event(self):
+        #self.queue.put(('fire', True)) # moving
+        #await asyncio.sleep(0.5) # keep moving for 0.5 second
+        #self.queue.put(('fire', False)) # moving
         while True:
             direction = random.choice(list(range(1, 5)))
             await self.queue.put(('drive', [direction, 100])) # moving
