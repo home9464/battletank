@@ -37,7 +37,7 @@ async def gen():
             cv2.line(frame, y_point1, y_point2, (0, 0, 255), 3)  #crosshair horizontal
             ret, jpeg = cv2.imencode('.jpg', frame)
             frame=jpeg.tobytes()
-            await asyncio.sleep(0)
+            #await asyncio.sleep(0)
             yield (b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         
@@ -49,7 +49,8 @@ async def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
     #loop = asyncio.get_event_loop()
     #result = loop.run_until_complete()
-    return await Response(await gen(),mimetype='multipart/x-mixed-replace; boundary=frame')
+    await asyncio.sleep(0)
+    return Response(gen(),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 async def start_camera_streaming():
     return await app.run(host='0.0.0.0', port=5000, debug=True, threaded=False)
