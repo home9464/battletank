@@ -16,11 +16,22 @@ def index():
     return render_template('./index.html')
 
 def gen():
+    video_width=640
+    video_height=480
     """Video streaming generator function."""
-    vs = cv2.VideoCapture(0)
+    vs = cv2.VideoCapture(1)  # USB camera
+    vs.set(3, video_width)  # width, max 3280
+    vs.set(4, video_height)  # height, max 2464
     while True:
         ret,frame=vs.read()
         if ret==True and frame is not None:
+            frame = cv2.circle(frame, (video_width//2, video_height//2), 200, (0,0,255), thickness=2, lineType=8, shift=0)
+            x_point1 = ((video_width//2)-20, video_height//2)
+            x_point2 = ((video_width//2)+20, video_height//2)
+            y_point1 = (video_width//2, (video_height//2)-20)
+            y_point2 = (video_width//2, (video_height//2)+20)
+            cv2.line(frame, x_point1, x_point2, (0, 0, 255), 3)  #crosshair horizontal
+            cv2.line(frame, y_point1, y_point2, (0, 0, 255), 3)  #crosshair horizontal
             ret, jpeg = cv2.imencode('.jpg', frame)
             frame=jpeg.tobytes()
             yield (b'--frame\r\n'
