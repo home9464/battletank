@@ -4,81 +4,35 @@ import termios, fcntl, sys, os
 
 from adafruit_servokit import ServoKit
 
-#from maingun import NerfGun
-
 class Turret:
 
     def __init__(self, max_angle=180):
-        servos_indices = [0, 2]  # only use one servo
         self.servokit = ServoKit(channels=16)
+
+        self.vertical_servo_id = 0
+        self.horizontal_servo_id = 2
 
         self.horizontal_angle = 90
         self.vertical_angle = 90
 
-        #self.min_x = 0
-        #self.max_x = 180
-
-        #self.min_y = 15
-        #self.max_y = 90
-
-        self.max_angle = 180
-        
-        for i in servos_indices:
+        for i in [self.vertical_servo_id, self.horizontal_servo_id]:
             #self.servokit.servo[i].set_pulse_width_range(450, 2450)
             self.servokit.servo[i].set_pulse_width_range(500, 2500)
-            self.servokit.servo[i].actuation_range = self.max_angle
-        #self.gun = NerfGun()
+            self.servokit.servo[i].actuation_range = 180
+        # center
         self.center()
 
-    def move(self, horizontal_vertical:[])-> None:
-        """
-        Args:
-        x : [-1, 1]
-        y : [-1, 1]
-        """
-        horizontal, vertical = horizontal_vertical
-        if 45 <= self.horizontal_angle + horizontal < 135:
-            self.horizontal_angle += horizontal
-            self.servokit.servo[2].angle = self.horizontal_angle
-        if 80 <= self.vertical_angle + vertical < 105:
-            self.vertical_angle += vertical
-            #self.servokit.servo[0].angle = self.vertical_angle
-        print(horizontal, vertical)
 
-    def angle(self, index:int, offset:int)-> None:
+    def angle(self, index:int, offset:int=1)-> None:
         """
         Args:
         """
-        #print('turret', index, offset)
-        #offset = 1 if offset > 1 else -1
-        if index == 0:  # move the barrel vertically
-            if offset == 1:
-                if 80 <= self.x < 105:
-                    self.x += 1
-                    self.servokit.servo[index].angle = self.x
-            elif offset == -1:
-                if 80 < self.x <= 105:
-                    self.x -= 1
-                    self.servokit.servo[index].angle = self.x
-            #elif offset == 0:
-            #    print('STOP')
+        # print('turret', index, offset, self.horizontal_angle)
+        if index == self.vertical_servo_id:  # move the barrel vertically
+            self.vertical(offset)
 
-        elif index == 2:  # turn the turret
-            if offset == 1:
-                if 0 <= self.y < 180:
-                    self.y += 1
-                    self.servokit.servo[index].angle = self.y
-            elif offset == -1:
-                if 0 < self.y <= 180:
-                    self.y -= 1
-                    self.servokit.servo[index].angle = self.y
-            #elif offset == 0:
-            #    print('STOP')
-
-
-        else:
-            pass
-        #print('!!!', angle)
+        elif index == self.horizontal_servo_id:  # turn the turret
+            self.horizontal(offset)
 
     def shoot(self):
         """
@@ -96,89 +50,45 @@ class Turret:
             self.gun.off()
 
     def center(self):
-        self.angle(0, self.horizontal_angle)
-        self.angle(2, self.vertical_angle)
+        """
+        """
+        self.angle(0, 90)
+        self.angle(2, 90)
 
-    def up(self):
-        self.y += 1
-        if self.min_y <= self.y <= self.max_y:
-            self.angle(0, self.y)
-
-    def down(self):
-        self.y -= 1
-        if self.min_y <= self.y <= self.max_y:
-            self.angle(0, self.y)
-
-    def left(self):
-        self.x -= 1
-        if 0 <= self.x <= 180:
-            self.angle(0, self.x)
-
-    def right(self):
-        self.x += 1
-        if 0 <= self.x <= 180:
-            self.angle(0, self.x)
-
-    def _vertical(self, offset):
+    def vertical(self, offset):
         """
         105 > self.x > 75 
         """
-        self.x += offset
-        print(self.x)
-        if 80 <= self.x <= 105:
-            self.angle(0, self.x)
+        if 80 <= self.vertical_angle + offset < 105:
+            self.vertical_angle += offset
+            self.servokit.servo[self.vertical_servo_id].angle = self.vertical_angle
 
-    def _horizontal(self, offset):
+    def horizontal(self, offset):
         """
-        
-
         """
-        #assert -90 < offset < 90
-        self.y += offset
-        if 0 <= self.y <= 180:
-            self.angle(2, self.y)
+        #if 0 <= offset < 180:
+        #    self.horizontal_angle = offset
+        #    print('X', self.horizontal_angle)
+        #    self.servokit.servo[self.horizontal_servo_id].angle = self.horizontal_angle
+        if 0 <= self.horizontal_angle + offset < 180:
+            self.horizontal_angle += offset
+            self.servokit.servo[self.horizontal_servo_id].angle = self.horizontal_angle
+            time.sleep(0.01)
 
 
 def test2():
     rcws = Turret()
-    time.sleep(1)
-    Turret.ADJUST_GUN_UP_DOWN = True
-    rcws.angle(2, 30)
-    Turret.ADJUST_GUN_UP_DOWN = True
-    time.sleep(3)
-    #rcws.vertical(15)
-    #rcws.horizontal(45)
-    #time.sleep(1)
-    #rcws.horizontal(-90)
-    #for _ in range(15):
-    #    rcws.vertical(-1)
+    #for i in range(90):
+    #    rcws.horizontal(1)
     #    time.sleep(0.2)
-    #for _ in range(30):
-    #    rcws.vertical(1)
-    #    time.sleep(0.2)
-    #for _ in range(18):
-    #rcws.horizontal(0)
-    #time.sleep(2)
-    #rcws.horizontal(-90)
-    #time.sleep(2)
-    #rcws.horizontal(180)
-    #time.sleep(2)
-    #rcws.horizontal(0)
-    #time.sleep(2)
-    #rcws.horizontal(0)
-    #time.sleep(2)
-    #rcws.horizontal(10)
-    #time.sleep(0.2)
-    #rcws.vertical(15)
-    '''
-    for _ in range(6):
-        _x = random.randint(6, 10)
-        _y = random.randint(0, 15)
-        rcws.horizontal(_x)
-        rcws.vertical(_y)
-        time.sleep(1)
-        #sq.shoot()
-    '''
+    for i in range(10):
+        rcws.vertical(1)
+        time.sleep(0.2)
+    for i in range(10):
+        rcws.vertical(-1)
+        time.sleep(0.2)
+
+
 
 if __name__ == '__main__':
     test2()

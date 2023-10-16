@@ -67,8 +67,8 @@ STICK_OR_PAD_TYPE = 3
 CODE_LEFT_STICK_VERTICAL = 0
 CODE_LEFT_STICK_HORIZONTAL = 1
 
-CODE_RIGHT_STICK_VERTICAL = 2
-CODE_RIGHT_STICK_HORIZONTAL = 5
+CODE_RIGHT_STICK_HORIZONTAL = 2
+CODE_RIGHT_STICK_VERTICAL = 5
 
 CODE_PAD_HORIZONTAL = 16
 CODE_PAD_VERTICAL = 17
@@ -86,8 +86,6 @@ CODE_BUTTON_RIGHT_TRIGGER = 9  # 9, 3, 0-255
 
 CODE_BUTTON_VIEW = 314  # 314, 1, 0/1
 CODE_BUTTON_MENU = 315  # 315, 1, 0/1
-
-
 
 class GamepadController:
     def __init__(self, debug=True):
@@ -134,6 +132,14 @@ class GamepadController:
         """
         if event in self.events_callback and callback in self.events_callback[event]:
             self.events_callback[event].remove(callback)
+
+    async def random_event(self):
+        while True:
+            direction = random.choice(list(range(1, 5)))
+            await self.queue.put(('drive', [direction, 100])) # moving
+            await asyncio.sleep(0.5) # keep moving for 0.5 second
+            await self.queue.put(('drive', [0, 100])) # stop
+            await asyncio.sleep(random.randint(3600, 7200))  # sleep
 
     async def producer(self):
         # non-blocking
@@ -194,40 +200,39 @@ class GamepadController:
                         #print(f'{event.value}\r')
                     #if  event.code == CODE_RIGHT_STICK_HORIZONTAL:
                     #    self.events_value['servo1'] = 1 if event.value > 127 else -1
+                    #print('MOVE:', event.code, event.value)
 
-                    #if  event.code == CODE_RIGHT_STICK_VERTICAL or CODE_RIGHT_STICK_HORIZONTAL:
-                        #pass
-                        #self.events_value['servo0'] = event.value
-                        #print(event.value, event.sec, event.usec, event.timestamp, event.type)
-                        #'code', 'sec', 'timestamp', 'type', 'usec', 'value'
-                        #self.events_value['servo0'] = random.randint(0, 180)
-                        #self.events_value['servo0'] = 1 if (event.value-127) else -1
-                        #print(f'0: {event.value}')
+                    """
+                    if  event.code == CODE_RIGHT_STICK_HORIZONTAL:
+                        #print('H:', event.code, event.value)
+                        if event.value < 10:
+                            self.events_value['servo1'] = -1
+                        elif event.value > 245:
+                            self.events_value['servo1'] = 1
+                        else:
+                            pass
 
-                    #if  event.code == CODE_RIGHT_STICK_HORIZONTAL:
-                    #    pass
-                        #print(event.value, event.sec, event.usec, event.timestamp, event.type)
-                        #print(event.value, event.type)
-                        #self.events_value['servo1'] = 1 if (event.value - 127) > 0 else -1
-                        #print(dir(event))
-                        #self.events_value['servo0'] = random.randint(0, 180)
-
+                    if  event.code == CODE_RIGHT_STICK_VERTICAL:  # [0, 255]
+                        if event.value < 10:
+                            self.events_value['servo0'] = -1
+                        elif event.value > 245:
+                            self.events_value['servo0'] = 1
+                        else:
+                            pass
+                    """
                     if  event.code == CODE_BUTTON_LEFT_BUMPER:
-                        self.events_value['servo0'] = -1 if event.value else 0
+                        self.events_value['servo1'] = 1 if event.value else 0
                     if  event.code == CODE_BUTTON_RIGHT_BUMPER:
-                        self.events_value['servo0'] = 1 if event.value else 0
+                        self.events_value['servo1'] = -1 if event.value else 0
 
                     if  event.code == CODE_BUTTON_LEFT_TRIGGER:
-                        self.events_value['servo1'] = -1 if event.value else 0
+                        self.events_value['servo0'] = -1 if event.value else 0
                     if  event.code == CODE_BUTTON_RIGHT_TRIGGER:
-                        self.events_value['servo1'] = 1 if event.value else 0
-
-                    #if  event.code == CODE_BUTTON_LEFT_TRIGGER or event.code == CODE_BUTTON_RIGHT_TRIGGER:
-                    #    self.events_value['servo1'] = event.value
+                        self.events_value['servo0'] = 1 if event.value else 0
+                    
 
                     if  event.code == CODE_BUTTON_A:
                         self.events_value['fire'] = event.value
-
 
                     #if  event.code == CODE_BUTTON_VIEW and event.value == 1:  # turn on / off camera
                     #    self.events_value['camera_onoff'] = 1 - self.events_value['camera_onoff']
@@ -236,7 +241,7 @@ class GamepadController:
                     for evt, evt_value in self.events_value.items():
                         if evt_value is not None:
                             await self.queue.put((evt, evt_value))
-                    self.events_value = {}
+                    #self.events_value = {}
                     #await asyncio.sleep(0)
                     #for evt, callbacks in self.events_callback.items():
                     #    for cb in callbacks:  # multiple callbacks on one event?
@@ -270,7 +275,6 @@ if __name__ == '__main__':
         controller = GamepadController(debug=False)
         controller.register('drive', drive)
         try:
-            # await asyncio.gather(await controller.producer())
             producer = asyncio.create_task(controller.producer())
             consumer = asyncio.create_task(controller.consumer())
             #await asyncio.gather(producer)

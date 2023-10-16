@@ -25,6 +25,7 @@ async def main():
     controller.register('fire', gunner.fire)  # channel 2
     try:
         controller_producer = asyncio.create_task(controller.producer())
+        #controller_random_event = asyncio.create_task(controller.random_event())
         controller_consumer = asyncio.create_task(controller.consumer())
         #await asyncio.gather(controller_producer)
         #task2 = asyncio.create_task(cam.start())

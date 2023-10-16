@@ -24,6 +24,10 @@ import pprint
 import pygame
 import threading
 
+
+from turret import Turret
+turretter = Turret()
+
 class GoogleStadiaController:
     """Class representing the PS4 controller. Pretty straightforward functionality."""
     BUTTON_A = 0
@@ -65,8 +69,8 @@ class GoogleStadiaController:
 
         # callback funcs on interested events
         self.events_callback = {k:[] for k in self.events}
-        print(self.events_callback)
 
+        self.axis_left = {}
 
     def register(self, event, callback):
         """
@@ -87,29 +91,13 @@ class GoogleStadiaController:
         """Listen for events to happen"""
         index = 0 
         clock = pygame.time.Clock()
-        joystick = pygame.joystick.Joystick(0)
-        joystick.init()
         while True:
-            axis0 = joystick.get_axis(0)
-            axis1 = joystick.get_axis(1)
-
-            #pygame.event.pump()
-            #x = pygame.joystick.Joystick(0).get_axis(0)
-            print(axis0, axis1)
-            clock.tick(20)
-            #for event in pygame.event.get():
-            #print(event)
-                #joystick = pygame.joystick.Joystick(i)
-
-                #if event.type == pygame.JOYAXISMOTION:
-
-
-            #pygame.event.pump()
-            #x = pygame.joystick.Joystick(0).get_axis(0)
-            #y = pygame.joystick.Joystick(0).get_axis(1)
-            #print([round(x, 2), round(y, 2)])
+            #event = pygame.event.wait() # blocking
+            for event in pygame.event.get():
+                if event.type == pygame.JOYAXISMOTION:
+                    #self.axis_left[event.axis] = int((int(event.value * 100) + 100) / 1.12)  # [-100, 100] -> [0, 180]
+                    self.axis_left[event.axis] = event.value
             """
-            self.events['move_gun'] = [round(x, 2), round(y, 2)]
             for evt, callbacks in self.events_callback.items():
                 for cb in callbacks:  # multiple callbacks on one event?
                     if self.events[evt] is not None:
@@ -120,6 +108,27 @@ class GoogleStadiaController:
             #print(index, self.events['move_gun'])
             #index += 1
             await asyncio.sleep(0)
+
+    async def action(self):
+        """Listen for events to happen"""
+        x_offset = 0
+        y_offset = 0
+
+        slow_down_scale = 800
+        while True:
+            x = self.axis_left.get(2, 0)
+            y = self.axis_left.get(3, 0)
+            x_offset += x
+            if x_offset <= -slow_down_scale or x_offset >= slow_down_scale:
+                turretter.horizontal(x_offset // slow_down_scale)
+                x_offset = 0
+            
+            y_offset += y
+            if y_offset <= -slow_down_scale or y_offset >= slow_down_scale:
+                turretter.vertical(y_offset // slow_down_scale)
+                y_offset = 0
+            await asyncio.sleep(0)
+
 
 def controller_main():
     ps4 = GoogleStadiaController()
@@ -133,10 +142,11 @@ def drive(args):
 async def main():
     stadia = GoogleStadiaController()
     stadia.init()
-    stadia.register('drive', drive)
-    stadia.listen()
+    #stadia.register('drive', drive)
     try:
-        await asyncio.create_task(stadia.listen())
+        task1 = asyncio.create_task(stadia.listen())
+        task2 = asyncio.create_task(stadia.action())
+        await task1
     except Exception as e:
         print(e)
     finally:

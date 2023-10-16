@@ -60,11 +60,13 @@ class GoogleStadiaController:
         self.controller.init()
 
         # what events
-        self.events = {'drive':None, 'move_gun':None, 'fire_gun':None, 'camera': None}
+        self.events = {
+            'drive':None, 'turret_left_right':None, 'gun_up_down':None, 'fire':None
+        }
 
         # callback funcs on interested events
         self.events_callback = {k:[] for k in self.events}
-        print(self.events_callback)
+        #print(self.events_callback)
 
 
     def register(self, event, callback):
@@ -99,18 +101,16 @@ class GoogleStadiaController:
                 self.hat_data[i] = (0, 0)
 
         while True:
-            for event in pygame.event.get():
+            event = pygame.event.wait()
+            print(event)
+            """
+            #for event in pygame.event.get():
                 if event.type == pygame.JOYAXISMOTION:
-                    self.axis_data[event.axis] = round(event.value,2)
-                    #if event.axis == GoogleStadiaController.AXIS_1_X:
-                    #    self.event_value['chassis_x'] = event.value
-                    #if event.axis == GoogleStadiaController.AXIS_1_Y:
-                    #    self.event_value['chassis_y'] = event.value
-
+                    #self.axis_data[event.axis] = round(event.value,2)
                     if event.axis == GoogleStadiaController.AXIS_2_X:
-                        self.events['move_gun'] = ['horizontally', round(event.value, 2)]
+                        self.events['turret_left_right'] = round(event.value, 2)
                     if event.axis == GoogleStadiaController.AXIS_2_Y:
-                        self.events['move_gun'] = ['vertically', round(event.value, 2)]
+                        self.events['gun_up_down'] = round(event.value, 2)
                     #if event.axis == GoogleStadiaController.AXIS_TRIGGER_X:
                     #    self.event_value['gun_x'] = event.value
                     #if event.axis == GoogleStadiaController.AXIS_TRIGGER_Y:
@@ -123,33 +123,27 @@ class GoogleStadiaController:
                 #    self.button_data[event.button] = False
                     if event.button == GoogleStadiaController.BUTTON_A:
                         self.events['fire'] = False
-
                 elif event.type == pygame.JOYHATMOTION:
                     #self.hat_data[event.hat] = event.value
                     self.events['drive'] = event.value
-
-                # Insert your code on what you would like to happen for each event here!
-                # In the current setup, I have the state simply printing out to the screen.
-
-                #os.system('clear')
-                #pprint.pprint(self.button_data)
-                #pprint.pprint(self.events)
-                pprint.pprint(self.axis_data)
-                
-                # {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 5: -1.0}
-
-                #pprint.pprint(self.axis_data)
-
-                # {0: (x, y)} [-1, 1]
-                #pprint.pprint(self.hat_data)
                 await asyncio.sleep(0)
-                """
-                for evt, callbacks in self.events_callback.items():
-                    for cb in callbacks:  # multiple callbacks on one event?
-                        if self.events[evt] is not None:
-                            cb(self.events[evt])
-                            #self.events[evt] = None
-                """
+            """
+
+    async def execute(self):
+        #index = 0
+        while True:
+            print('CONSUME')
+            #os.system('clear')
+            #print(index, self.events)
+            #index += 1
+            #turn = 0.0
+            for evt, callbacks in self.events_callback.items():
+                for cb in callbacks:  # multiple callbacks on one event?
+                    if self.events[evt] is not None:
+                        cb(self.events[evt])
+                        #self.events[evt] = None            
+            await asyncio.sleep(0)
+
 def controller_main():
     ps4 = GoogleStadiaController()
     ps4.init()
@@ -159,18 +153,39 @@ def drive(args):
     direction, throttle = args
     print('I am driving', direction, throttle)
 
+def fire(args):
+    print('Fire!!!!', args)
+
+INDEX1  = 0
+INDEX2  = 0
+def move_turret(args):
+    global INDEX1
+    if -0.3 > args or args > 0.3:
+        print(INDEX1, 'turret', args)
+        INDEX1 += 1
+
+def move_gun(args):
+    global INDEX2
+    print(INDEX2, 'gun', args)
+    INDEX2 += 1
+
 async def main():
     stadia = GoogleStadiaController()
     stadia.init()
     stadia.register('drive', drive)
+    stadia.register('turret_left_right', move_turret)
+    #stadia.register('gun_up_down', move_gun)
+    #stadia.register('fire', fire)
     stadia.listen()
     try:
-        await asyncio.create_task(stadia.listen())
+        listener = asyncio.create_task(stadia.listen())
+        executor = asyncio.create_task(stadia.execute())
+        await listener
     except Exception as e:
         print(e)
     finally:
         pass
     
 
-#if __name__ == '__main__':
-#    asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())

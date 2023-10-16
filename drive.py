@@ -74,7 +74,7 @@ class Drive:
 
     def drive(self, direction_and_throttle:List) -> None:
         direction, throttle_percent = direction_and_throttle
-        print(direction, throttle_percent)
+        # print(direction, throttle_percent)
         assert 0 <= direction and direction <= 4
         if direction == 0:
             self.stop()
