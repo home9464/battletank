@@ -17,11 +17,11 @@ async def index():
     await asyncio.sleep(0)
     return render_template('./index.html')
 
-async def gen():
+def gen():
     video_width=640
     video_height=480
     """Video streaming generator function."""
-    vs = cv2.VideoCapture(1)  # USB camera
+    vs = cv2.VideoCapture(0)  # USB camera
     vs.set(3, video_width)  # width, max 3280
     vs.set(4, video_height)  # height, max 2464
     while True:
@@ -51,7 +51,3 @@ async def video_feed():
     #result = loop.run_until_complete()
     await asyncio.sleep(0)
     return Response(gen(),mimetype='multipart/x-mixed-replace; boundary=frame')
-
-async def start_camera_streaming():
-    return await cam_app.run(host='0.0.0.0', port=5000, debug=True, threaded=False)
-
