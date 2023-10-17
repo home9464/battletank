@@ -4,7 +4,7 @@ import functools
 import asyncio
 
 from drive import Drive
-from camera import start_camera_streaming
+from camera import cam_app
 
 from gun import MainGun
 from turret import Turret
@@ -26,7 +26,7 @@ async def main():
     controller.register('servo1', functools.partial(commander.angle, 2))  # channel 2
     controller.register('fire', gunner.fire)  # channel 2
     try:
-        camera_straming = asyncio.create_task(start_camera_streaming())
+        camera_straming = asyncio.create_task(cam_app.run(host='0.0.0.0', port=5000, debug=True, threaded=False))
         controller_producer = asyncio.create_task(controller.producer())
         #controller_random_event = asyncio.create_task(controller.random_event())
         controller_consumer = asyncio.create_task(controller.consumer())

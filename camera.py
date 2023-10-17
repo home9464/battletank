@@ -8,10 +8,10 @@ import asyncio
 from flask import Flask, render_template, Response
 import cv2
 
-app = Flask(__name__)
+cam_app = Flask(__name__)
 #app.config["CACHE_TYPE"] = "null"
 
-@app.route('/')
+@cam_app.route('/')
 async def index():
     """Video streaming home page."""
     await asyncio.sleep(0)
@@ -44,7 +44,7 @@ async def gen():
     vs.release()
     cv2.destroyAllWindows() 
 
-@app.route('/video_feed')
+@cam_app.route('/video_feed')
 async def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
     #loop = asyncio.get_event_loop()
@@ -53,5 +53,5 @@ async def video_feed():
     return Response(gen(),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 async def start_camera_streaming():
-    return await app.run(host='0.0.0.0', port=5000, debug=True, threaded=False)
+    return await cam_app.run(host='0.0.0.0', port=5000, debug=True, threaded=False)
 
