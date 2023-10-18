@@ -31,6 +31,7 @@ def gen():
             frame = cv2.circle(frame, (video_width//2, video_height//2), 
                                circle_radius, (0,0,255), thickness=2, lineType=8, shift=0)
             frame = cv2.flip(frame, 0)
+            frame = cv2.flip(frame, 1)
             x_point1 = ((video_width//2)-20, video_height//2)
             x_point2 = ((video_width//2)+20, video_height//2)
             y_point1 = (video_width//2, (video_height//2)-20)
