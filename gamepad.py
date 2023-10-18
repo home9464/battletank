@@ -107,7 +107,7 @@ class GamepadController:
 
         udevadm info --query=property --name=/dev/input/event4 | grep "ID_INPUT_JOYSTICK=1"
         """
-    def _wait_until_connected(self, device='/dev/input/event0'):
+    def _wait_until_connected(self, device='/dev/input/event1'):
         self.controller = None
         while self.controller is None:
             try:
@@ -275,7 +275,7 @@ def drive(args):
 
 if __name__ == '__main__':
     async def main():
-        controller = GamepadController(debug=False)
+        controller = GamepadController(debug=True)
         controller.register('drive', drive)
         try:
             producer = asyncio.create_task(controller.producer())
